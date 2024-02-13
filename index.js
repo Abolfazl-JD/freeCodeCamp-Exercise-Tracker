@@ -60,7 +60,10 @@ app.get('/api/users', function (_req, res) {
 
 	console.log('users in database: '.toLocaleUpperCase() + users.length);
 
-	res.json(users);
+	// Return an array of user objects containing username and _id
+	const userObjects = users.map(user => ({ username: user.username, _id: user._id }));
+
+	res.json(userObjects);
 });
 
 /*
@@ -141,8 +144,7 @@ app.post('/api/users/:_id/exercises', function (req, res) {
 app.get('/api/users/:_id/logs', async function (req, res) {
 	const userId = req.params._id;
 	const from = req.query.from || new Date(0).toISOString().substring(0, 10);
-	const to =
-		req.query.to || new Date(Date.now()).toISOString().substring(0, 10);
+	const to = req.query.to || new Date(Date.now()).toISOString().substring(0, 10);
 	const limit = Number(req.query.limit) || 0;
 
 	console.log('### get the log from a user ###'.toLocaleUpperCase());
@@ -159,6 +161,11 @@ app.get('/api/users/:_id/logs', async function (req, res) {
 	);
 
 	let userExercises = exercises.filter(exercise => exercise.userId === Number(userId) && exercise.date >= from && exercise.date <= to);
+
+	// Limit the number of logs returned if limit is provided
+	if (limit > 0) {
+		userExercises = userExercises.slice(0, limit);
+	}
 
 	let parsedDatesLog = userExercises.map((exercise) => {
 		return {
