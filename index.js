@@ -17,6 +17,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 let users = [];
 let exercises = [];
 
+//* Generate pseudo-random ObjectId
+function generateObjectId() {
+	const timestamp = (new Date().getTime() / 1000 | 0).toString(16);
+	return timestamp + 'xxxxxxxxxxxxxxxx'.replace(/[x]/g, () => (Math.random() * 16 | 0).toString(16)).toLowerCase();
+}
+
 //* Endpoints
 
 /*
@@ -62,7 +68,7 @@ app.get('/api/users', function (_req, res) {
 
 	// Return an array of user objects containing username and _id
 	const userObjects = users.map(user => ({ username: user.username, _id: user._id }));
-
+	console.log('users : ', userObjects)
 	res.json(userObjects);
 });
 
@@ -76,7 +82,7 @@ app.post('/api/users', function (req, res) {
 	console.log('### create a new user ###'.toLocaleUpperCase());
 
 	//? Create a new user
-	let newUser = { username: inputUsername, _id: users.length + 1 };
+	let newUser = { username: inputUsername, _id: generateObjectId() };
 
 	console.log(
 		'creating a new user with username - '.toLocaleUpperCase() + inputUsername
@@ -109,7 +115,7 @@ app.post('/api/users/:_id/exercises', function (req, res) {
 		'looking for user with id ['.toLocaleUpperCase() + userId + '] ...'
 	);
 
-	let userInDb = users.find(user => user._id === Number(userId));
+	let userInDb = users.find(user => user._id === userId);
 
 	if (!userInDb) {
 		res.json({ message: 'There are no users with that ID in the database!' });
@@ -149,7 +155,7 @@ app.get('/api/users/:_id/logs', async function (req, res) {
 
 	console.log('### get the log from a user ###'.toLocaleUpperCase());
 
-	let user = users.find(user => user._id === Number(userId));
+	let user = users.find(user => user._id === userId);
 
 	if (!user) {
 		res.json({ message: 'There are no users with that ID in the database!' });
@@ -160,7 +166,7 @@ app.get('/api/users/:_id/logs', async function (req, res) {
 		'looking for exercises with id ['.toLocaleUpperCase() + userId + '] ...'
 	);
 
-	let userExercises = exercises.filter(exercise => exercise.userId === Number(userId) && exercise.date >= from && exercise.date <= to);
+	let userExercises = exercises.filter(exercise => exercise.userId === userId && exercise.date >= from && exercise.date <= to);
 
 	// Limit the number of logs returned if limit is provided
 	if (limit > 0) {
